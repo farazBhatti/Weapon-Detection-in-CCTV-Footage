@@ -7,8 +7,8 @@ VGG_16 was trained using [PyimageSearch](https://www.pyimagesearch.com/2019/05/2
 ## Inference
 __VGG__
 
-__for static images__
+for static images :
 ``` python3 predict.py --image test_imgs/gun.jpg ```
 
-__webcame__
+webcame : 
 ``` python3 webcam_VGG.py ```
