@@ -8,7 +8,7 @@ VGG_16 was trained using [PyimageSearch](https://www.pyimagesearch.com/2019/05/2
 __VGG__
 
 images :
-``` python3 predict.py --image test_imgs/gun.jpg ```
+``` python3 predict_VGG.py --image test_imgs/gun.jpg ```
 
 webcame : 
 ``` python3 webcam_VGG.py ```
