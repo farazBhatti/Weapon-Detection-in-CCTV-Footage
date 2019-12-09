@@ -1,0 +1,6 @@
+classes=1
+train=./data/weapon_train.txt
+valid=./data/weapon_test.txt
+names=./data/coco_weapon.names
+backup=backup/
+eval=coco
