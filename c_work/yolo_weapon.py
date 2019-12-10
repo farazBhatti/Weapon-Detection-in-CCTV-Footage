@@ -70,6 +70,10 @@ def LoadImages_(img0,img_size=416, half=False):
         img = np.ascontiguousarray(img, dtype=np.float16 if half else np.float32)  # uint8 to fp16/fp32
         img /= 255.0  # 0 - 255 to 0.0 - 1.0
 #        print('image shape after Transpose = ',img.shape)
+#        cv2.imshow('image in loadImage function',img0)
+#        cv2.waitKey(0)
+#        cv2.destroyAllWindows()
+        
 
 
         # cv2.imwrite(path + '.letterbox.jpg', 255 * img.transpose((1, 2, 0))[:, :, ::-1])  # save letterbox image
@@ -96,12 +100,12 @@ def crop_img(img,dim):
     
     x = IntTensor.item(dim[0])#60
     y = IntTensor.item(dim[1])#20
-    h = IntTensor.item(dim[2]) #* 1.1#increase by 10 percent to improve VGG classification
-    w = IntTensor.item(dim[3]) #* 1.1
+    w = IntTensor.item(dim[2]) #* 1.1#increase by 10 percent to improve VGG classification
+    h = IntTensor.item(dim[3]) #* 1.1
     
     
 
-    croped_img = img[int(y):int(y+w), int(x):int(x+h)]
+    croped_img = img[int(y):int(h), int(x):int(w)]
 #    cv2.imshow("cropped", croped_img)
 #    cv2.waitKey(0)
 #    cv2.destroyAllWindows()
@@ -116,9 +120,9 @@ def detect(croped_img):#,save_txt=False, save_img=False):
 
     # Initialize
     device = torch_utils.select_device(device='cpu' )#if ONNX_EXPORT else opt.device)
-    if os.path.exists(out):
-        shutil.rmtree(out)  # delete output folder
-    os.makedirs(out)  # make new output folder
+#    if os.path.exists(out):
+#        shutil.rmtree(out)  # delete output folder
+#    os.makedirs(out)  # make new output folder
 
     # Initialize model
     model = Darknet('cfg/yolov3_weapon.cfg', img_size)
@@ -210,9 +214,14 @@ def detect(croped_img):#,save_txt=False, save_img=False):
 #    print('Type of image = ',type(img[0]))
     #exit()
     pred = model(img)[0]
+#    print('length of prediction = ',len(pred))
+#    print('Shape of prediction = ',pred.shape)
+#    exit()
 
-    if 'store_true':
-        pred = pred.float()
+#    if 'store_true':
+#        print('@@@@@@@@@@@@')
+#        exit()
+#        pred = pred.float()
 
     # Apply NMS
     pred = non_max_suppression(pred, 0.3, 0.5)
@@ -223,6 +232,9 @@ def detect(croped_img):#,save_txt=False, save_img=False):
 
     # Process detections
     for i, det in enumerate(pred):  # detections per image
+#        print('prediction length:',len(pred))
+#        print('prediciton:',pred)
+#        exit()
 #            if webcam:  # batch_size >= 1
 #                p, s, im0 = path[i], '%g: ' % i, im0s[i]
 #            else:
@@ -233,13 +245,13 @@ def detect(croped_img):#,save_txt=False, save_img=False):
         #save_path = str(Path(out) / Path(p).name)
         s += '%gx%g ' % img.shape[2:]  # print string
         if det is not None and len(det):
+            print('length of detection:',len(det))
             # Rescale boxes from img_size to im0 size
 #                return 1
             det[:, :4] = scale_coords(img.shape[2:], det[:, :4], im0.shape).round()
-            print('length = ',len(det))
-            print('type = ',type(det))
-            exit()
-            #print('Detection list = ',det[0][2])
+#            print('length = ',len(det))
+#            print('type = ',type(det))
+#            print('Detection list = ',det[0][2])
 
 
             return 1,det[0][:4]

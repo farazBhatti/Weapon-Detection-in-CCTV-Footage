@@ -2,7 +2,6 @@ import argparse
 import torch
 from keras.models import load_model
 from torch import IntTensor
-from PIL import Image 
 
 from predict_VGG import VGG_inference
 import yolo_weapon
@@ -24,23 +23,16 @@ def show(img):
     cv2.destroyAllWindows()
 
 def crop_img(img,dim):
-    
-    
-#    x = 551#IntTensor.item(dim[0])#60
-#    y = 204#IntTensor.item(dim[1])#20
-#    w = 640#IntTensor.item(dim[2]) * 1.1#increase by 10 percent to improve Yolo/VGG classification
-#    h = 449#IntTensor.item(dim[3]) * 1.1
 
     
     x = IntTensor.item(dim[0])#60
     y = IntTensor.item(dim[1])#20
-    w = IntTensor.item(dim[2]) #* 1.1#increase by 10 percent to improve Yolo/VGG classification
-    h = IntTensor.item(dim[3]) #* 1.1
+    w = IntTensor.item(dim[2]) * 1.1#increase by 10 percent to improve Yolo/VGG classification
+    h = IntTensor.item(dim[3]) * 1.1
     
     
 
-    #croped_img = img[int(y):int(h), int(x):int(w)]
-    croped_img = img[int(y*0.8):int(h*1.1), int(x*0.8):int(w*1.2)]
+    croped_img = img[int(y):int(y+w), int(x):int(x+h)]
 #    cv2.imshow("cropped", croped_img)
 #    cv2.waitKey(0)
 #    cv2.destroyAllWindows()
@@ -128,8 +120,8 @@ def detect(save_txt=False, save_img=False):
     # Run inference
     t0 = time.time()
     for path, img, im0s, vid_cap in dataset:
-#        print('\n shape of return img : ',img.shape)
-#        print('\n type of returned image : ',type(img))
+        print('\n shape of return img : ',img.shape)
+        print('\n type of returned image : ',type(img))
         t = time.time()
 
         # Get detections
@@ -145,8 +137,8 @@ def detect(save_txt=False, save_img=False):
 #        exit()
         #exit()
         if opt.half:
-#            print('#####################')
-#            exit()
+            print('#####################')
+            exit()
             pred = pred.float()
 
         # Apply NMS
@@ -157,7 +149,7 @@ def detect(save_txt=False, save_img=False):
 
         # Process detections
         for i, det in enumerate(pred):
-#            print('prediction length:',len(pred))
+            print('prediction length:',len(pred))
             print('prediciton:',pred)
             # detections per image
             if webcam:  # batch_size >= 1
@@ -172,8 +164,8 @@ def detect(save_txt=False, save_img=False):
 
                 # Rescale boxes from img_size to im0 size
                 det[:, :4] = scale_coords(img.shape[2:], det[:, :4], im0.shape).round()
-#                print(det[0])
-#                print('type = ',type(det))
+                print(det[0])
+                print('type = ',type(det))
 
                 # Print results
                 for c in det[:, -1].unique():
@@ -184,72 +176,61 @@ def detect(save_txt=False, save_img=False):
                 for *xyxy, conf, _, cls in det:
                     #Get only prediction of class person
                     if 0.0==torch.IntTensor.item(cls):
-                        label = '%s %.2f' % (classes[int(cls)], conf)
-
                         print('coordinates = ',xyxy)
-                        plot_one_box(xyxy, im0, label=label, color = [0,97,232])
-
                         croped_img = crop_img(im0,xyxy)
-#                        show(croped_img)
-
+                        #show_img(croped_img)
                         weapon_det,det_list = yolo_weapon.detect(croped_img)
-#                        print('detection list : ',det_list)
-                        
-                        label = '%s %.2f' % (classes_wp[int(cls)], conf)
+                        print('detection list : ',det_list)
+                        show(croped_img)
                         
                         
          
             
                         if 1 == weapon_det:
-                            print('WEAPON DETECTED BY YOLO')
-#                            print('Weapon detection = ',weapon_det)
-                            plot_one_box(det_list, croped_img, label=label, color = [0,200,255])
+                            print('Weapon detection = ',weapon_det)
                             croped_img_weapon = crop_img(croped_img,det_list)
-                            #show(croped_img_weapon)
+                            show(croped_img_weapon)
 
 
 #                            x = IntTensor.item(det_list[0])#60
 #                            y = IntTensor.item(det_list[1])#20
 #                            h = IntTensor.item(det_list[2]) * 1.1#increase by 10 percent to improve Yolo/VGG classification
 #                            w = IntTensor.item(det_list[3]) * 1.1
-                            print('Applying VGG Classifier')
 
-                            pred_num = VGG_inference(croped_img_weapon,model_VGG)
+                            pred_num = VGG_inference(im0,model_VGG)
                             label = '%s %.2f' % (classes_wp[int(cls)], conf)
                            
                             if pred_num == 1:
-                                print('VGG validated ')
                             
                             #plot_one_box(xyxy, im0, label=label, color=colors[int(cls)])
-                                plot_one_box(det_list, croped_img, label=label, color = [255,0,0])
+                                plot_one_box(det_list, im0, label=label, color = [255,0,0])
                             else:
                                 text = "ONLY YOLO3 DETECTION"
-                                plot_one_box(det_list, croped_img, label=label, color = [0, 255, 255])
+                                plot_one_box(det_list, croped_img_weapon, label=label, color = [0, 255, 255])
                                 cv2.putText(im0, text, (3, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
                                 	(0, 255, 0), 2)
 
 
                         
 
-#                        if save_txt:  # Write to file
-#                            with open(save_path + '.txt', 'a') as file:
-#                                #file.write(('%g ' * 6 + '\n') % (*xyxy, cls, conf))
+                        if save_txt:  # Write to file
+                            with open(save_path + '.txt', 'a') as file:
+                                file.write(('%g ' * 6 + '\n') % (*xyxy, cls, conf))
     
-#                        if save_img or view_img:  # Add bbox to image
-#                            label = '%s %.2f' % (classes[int(cls)], conf)
-#                            plot_one_box(xyxy, im0, label=label, color=colors[int(cls)])
-#                            print('################################',xyxy)
+                        if save_img or view_img:  # Add bbox to image
+                            label = '%s %.2f' % (classes[int(cls)], conf)
+                            plot_one_box(xyxy, im0, label=label, color=colors[int(cls)])
+                            print('################################',xyxy)
 
             print('%sDone. (%.3fs)' % (s, time.time() - t))
 
             # Stream results
-#            if view_img:
-#                cv2.imshow(p, im0)
+            if view_img:
+                cv2.imshow(p, im0)
 
             # Save results (image with detections)
             if save_img:
                 if dataset.mode == 'images':
-                    print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
                     cv2.imwrite(save_path, im0)
                 else:
                     if vid_path != save_path:  # new video
@@ -261,11 +242,6 @@ def detect(save_txt=False, save_img=False):
                         w = int(vid_cap.get(cv2.CAP_PROP_FRAME_WIDTH))
                         h = int(vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
                         vid_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*opt.fourcc), fps, (w, h))
-                    print('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
-                    #show(im0)
-                    cv2.imshow('frame',im0)
-                    if cv2.waitKey(1) & 0xFF == ord('q'):
-                        break
                     vid_writer.write(im0)
 
     if save_txt or save_img:
