@@ -4,6 +4,25 @@ Repository contains implementation of weapon detection pipeline which consists o
 
 VGG_16 was trained using [PyimageSearch](https://www.pyimagesearch.com/2019/05/20/transfer-learning-with-keras-and-deep-learning/) tutorial on gun(~11000) images.
 
+## Requirements
+Python 3.6 or later
+
+- numpy
+- opencv-python
+- torch >= 1.1.0
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## Inference
 __VGG__
 
