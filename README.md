@@ -12,3 +12,9 @@ images :
 
 webcame : 
 ``` python3 webcam_VGG.py ```
+
+## Pre-Trained Model Weights
+__YOLO Backend__
+[weights](https://drive.google.com/open?id=1uTlyDWlnaqXcsKOktP5aH_zRDbfcDp-y).
+
+
