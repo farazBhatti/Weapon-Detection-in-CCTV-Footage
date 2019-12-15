@@ -106,109 +106,131 @@ def detect(save_txt=False, save_img=False):
         view_img = True
         torch.backends.cudnn.benchmark = True  # set True to speed up constant image size inference
         dataset = LoadStreams(source, img_size=img_size, half=half)
-    else:
+#    else:
+#        
+#        save_img = True
+#        dataset = LoadImages(source, img_size=img_size, half=half)
+
+
+    only_yolo = 0
+    vgg = 0
+    fail = 0
+     
+    for im in glob.glob('weapon_detection_paper_dataset/weapon/*.jpg'):
         save_img = True
-        dataset = LoadImages(source, img_size=img_size, half=half)
-
-    # Get classes and colors
-    classes = load_classes(parse_data_cfg(opt.data)['names'])
-    colors = [[random.randint(0, 255) for _ in range(3)] for _ in range(len(classes))]
-
-    # Run inference
-    t0 = time.time()
-    for path, img, im0s, vid_cap in dataset:
-        t = time.time()
-
-        # Get detections
-        img = torch.from_numpy(img).to(device)
-        if img.ndimension() == 3:
-            img = img.unsqueeze(0)
-        pred = model(img)[0]
-
-        if opt.half:
-            pred = pred.float()
-
-        # Apply NMS
-        pred = non_max_suppression(pred, opt.conf_thres, opt.nms_thres)
-
-        # Apply
-        if classify:
-            pred = apply_classifier(pred, modelc, img, im0s)
-
-        # Process detections
-        for i, det in enumerate(pred):  # detections per image
-            if webcam:  # batch_size >= 1
-                p, s, im0 = path[i], '%g: ' % i, im0s[i]
-            else:
-                p, s, im0 = path, '', im0s
-
-            save_path = str(Path(out) / Path(p).name)
-            s += '%gx%g ' % img.shape[2:]  # print string
-            if det is not None and len(det):
-                # Rescale boxes from img_size to im0 size
-                det[:, :4] = scale_coords(img.shape[2:], det[:, :4], im0.shape).round()
-
-                # Print results
-                for c in det[:, -1].unique():
-                    n = (det[:, -1] == c).sum()  # detections per class
-                    s += '%g %ss, ' % (n, classes[int(c)])  # add to string
-
-                # Write results
-                for *xyxy, conf, _, cls in det:
-                    if save_txt:  # Write to file
-                        with open(save_path + '.txt', 'a') as file:
-                            file.write(('%g ' * 6 + '\n') % (*xyxy, cls, conf))
-
-                    if save_img or view_img:  # Add bbox to image
-                        label = '%s %.2f' % (classes[int(cls)], conf)
-                        plot_one_box(xyxy, im0, label=label, color=colors[int(cls)])
-                        croped_img = crop_img(im0,xyxy)
-                        print('coordinates:',xyxy)
-                        print('Applying VGG Classifier')
-
-                        pred_num = VGG_inference(croped_img,model_VGG)
-
-                       
-                        if pred_num == 1:
-                            print('VGG validated ')
-                        
-                        #plot_one_box(xyxy, im0, label=label, color=colors[int(cls)])
-                            plot_one_box(xyxy, im0, label=label, color = [0,255,0])
-                        else:
-                            text = "ONLY YOLO3 DETECTION"
-                            plot_one_box(xyxy, im0, label=label, color = [0, 255, 255])
-                            cv2.putText(im0, text, (3, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
-                            	(0, 255, 0), 2)
+        dataset = LoadImages(im, img_size=img_size, half=half)
 
 
-            print('%sDone. (%.3fs)' % (s, time.time() - t))
-
-            # Stream results
-            if view_img:
-                cv2.imshow(p, im0)
-
-            # Save results (image with detections)
-            if save_img:
-                if dataset.mode == 'images':
-                    cv2.imwrite(save_path, im0)
+    
+        # Get classes and colors
+        classes = load_classes(parse_data_cfg(opt.data)['names'])
+        colors = [[random.randint(0, 255) for _ in range(3)] for _ in range(len(classes))]
+    
+        # Run inference
+        t0 = time.time()
+        for path, img, im0s, vid_cap in dataset:
+            t = time.time()
+    
+            # Get detections
+            img = torch.from_numpy(img).to(device)
+            if img.ndimension() == 3:
+                img = img.unsqueeze(0)
+            pred = model(img)[0]
+    
+            if opt.half:
+                pred = pred.float()
+    
+            # Apply NMS
+            pred = non_max_suppression(pred, opt.conf_thres, opt.nms_thres)
+    
+            # Apply
+            if classify:
+                pred = apply_classifier(pred, modelc, img, im0s)
+    
+            # Process detections
+            for i, det in enumerate(pred):  # detections per image
+                if webcam:  # batch_size >= 1
+                    p, s, im0 = path[i], '%g: ' % i, im0s[i]
                 else:
-                    if vid_path != save_path:  # new video
-                        vid_path = save_path
-                        if isinstance(vid_writer, cv2.VideoWriter):
-                            vid_writer.release()  # release previous video writer
-
-                        fps = vid_cap.get(cv2.CAP_PROP_FPS)
-                        w = int(vid_cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-                        h = int(vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-                        vid_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*opt.fourcc), fps, (w, h))
-                    vid_writer.write(im0)
-
-    if save_txt or save_img:
-        print('Results saved to %s' % os.getcwd() + os.sep + out)
-        if platform == 'darwin':  # MacOS
-            os.system('open ' + out + ' ' + save_path)
-
+                    p, s, im0 = path, '', im0s
+    
+                save_path = str(Path(out) / Path(p).name)
+                s += '%gx%g ' % img.shape[2:]  # print string
+                if det is not None and len(det):
+                    # Rescale boxes from img_size to im0 size
+                    det[:, :4] = scale_coords(img.shape[2:], det[:, :4], im0.shape).round()
+    
+                    # Print results
+                    for c in det[:, -1].unique():
+                        n = (det[:, -1] == c).sum()  # detections per class
+                        s += '%g %ss, ' % (n, classes[int(c)])  # add to string
+    
+                    # Write results
+                    for *xyxy, conf, _, cls in det:
+                        if save_txt:  # Write to file
+                            with open(save_path + '.txt', 'a') as file:
+                                file.write(('%g ' * 6 + '\n') % (*xyxy, cls, conf))
+    
+                        if save_img or view_img:  # Add bbox to image
+                            label = '%s %.2f' % (classes[int(cls)], conf)
+                            plot_one_box(xyxy, im0, label=label, color=colors[int(cls)])
+                            croped_img = crop_img(im0,xyxy)
+                            print('coordinates:',xyxy)
+                            print('Applying VGG Classifier')
+    
+                            pred_num = VGG_inference(croped_img,model_VGG)
+    
+                           
+                            if pred_num == 1:
+                                print('VGG validated ')
+                                vgg = vgg + 1
+                            
+                            #plot_one_box(xyxy, im0, label=label, color=colors[int(cls)])
+                                plot_one_box(xyxy, im0, label=label, color = [0,0,255])
+                            else:
+                                text = "ONLY YOLO3 DETECTION"
+                                only_yolo = only_yolo + 1
+                                plot_one_box(xyxy, im0, label=label, color = [0, 255, 255])
+                                cv2.putText(im0, text, (3, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                                	(0, 255, 0), 2)
+                        fail = fail + 1
+    
+    
+                print('%sDone. (%.3fs)' % (s, time.time() - t))
+    
+                # Stream results
+                if view_img:
+                    cv2.imshow(p, im0)
+    
+                # Save results (image with detections)
+                if save_img:
+                    if dataset.mode == 'images':
+                        print('Saving to :',save_path)
+                        cv2.imwrite(save_path, im0)
+                    else:
+                        if vid_path != save_path:  # new video
+                            vid_path = save_path
+                            if isinstance(vid_writer, cv2.VideoWriter):
+                                vid_writer.release()  # release previous video writer
+    
+                            fps = vid_cap.get(cv2.CAP_PROP_FPS)
+                            w = int(vid_cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+                            h = int(vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+                            vid_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*opt.fourcc), fps, (w, h))
+                        vid_writer.write(im0)
+    
+        if save_txt or save_img:
+            print('Results saved to %s' % os.getcwd() + os.sep + out)
+            if platform == 'darwin':  # MacOS
+                os.system('open ' + out + ' ' + save_path)
+    
     print('Done. (%.3fs)' % (time.time() - t0))
+    print('Only yolo detections = ',only_yolo)
+    print('percentage: ',only_yolo/3000)
+    print('VGG detections = ',vgg)
+    print('percentage: ',vgg/3000)
+    print('Failed detections = ',fail)
+    print('percentage: ',fail/3000)
 
 
 if __name__ == '__main__':
