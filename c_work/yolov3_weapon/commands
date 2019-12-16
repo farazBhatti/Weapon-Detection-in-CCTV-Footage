@@ -1,0 +1,13 @@
+python3 train.py --data data/coco.data --cfg cfg/yolov3.cfg
+
+Inference
+python3 detect.py --source video.mp4 --cfg cfg/yolov3.cfg --weights weights/best.pt
+
+python3 detect.py --source gun.jpg --cfg cfg/yolov3.cfg --weights weights/best.pt
+
+python3 detect.py --source test_data/videos/v_3.mp4 --cfg cfg/yolov3.cfg --weights weights/best.pt
+
+
+(my code)
+python3 inference.py --source test_data/videos/v_3.mp4 --cfg cfg/yolov3.cfg --weights weights/best.pt
+
