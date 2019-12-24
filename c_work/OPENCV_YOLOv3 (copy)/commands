@@ -1,0 +1,6 @@
+image
+python3 object_detection_yolo.py --image=bird.jpg
+
+video
+python3 object_detection_yolo.py --video=run.mp4
+
