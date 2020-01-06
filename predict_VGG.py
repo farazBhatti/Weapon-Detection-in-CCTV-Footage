@@ -1,6 +1,3 @@
-# USAGE
-# python predict.py --image dataset/evaluation/Egg/3_137.jpg 
-
 # import the necessary packages
 from keras.models import load_model
 from pyimagesearch import config
