@@ -31,9 +31,13 @@ images :
 
 webcame : 
 ``` python3 webcam_VGG.py ```
+Note: To run webcam_VGG.py make new folder, name it "output", download VGG weights for link below aqnd paste it there
+
 
 ## Pre-Trained Model Weights
 __YOLO Backend__
 [weights](https://drive.google.com/open?id=1uTlyDWlnaqXcsKOktP5aH_zRDbfcDp-y).
 
+__VGG weights for weapon classifcation__
+[weights](https://drive.google.com/file/d/1IjEGxk9UbJLeK04EltVUCDv8_RxVn1GX/view?usp=sharing)
 
