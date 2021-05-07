@@ -13,9 +13,9 @@ Python 3.6 or later
 
 
 
+![img1](https://github.com/farazBhatti/Weapon-Detection-in-CCTV-Footage/blob/master/test_imgs/result2)
 
-
-
+![img2](https://github.com/farazBhatti/Weapon-Detection-in-CCTV-Footage/blob/master/test_imgs/result1)
 
 
 
